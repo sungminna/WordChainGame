@@ -6,6 +6,7 @@
 #include "Server.h"
 #include "ServerDlg.h"
 #include "afxdialogex.h"
+#include "ChildSocket.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -58,6 +59,7 @@ CServerDlg::CServerDlg(CWnd* pParent /*=NULL*/)
 void CServerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_EDIT1, m_ctrlEdit);
 }
 
 BEGIN_MESSAGE_MAP(CServerDlg, CDialogEx)
@@ -99,6 +101,14 @@ BOOL CServerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	m_pListenSocket = new CListenSocket;
+	if (m_pListenSocket->Create(7000, SOCK_STREAM)) {
+		if (m_pListenSocket->Listen()) {
+			m_ctrlEdit.ReplaceSel(_T("[서버] Port(7000)이 Listen 소켓으로 열렸습니다.\r\n"));
+		}
+		else AfxMessageBox(_T("ERROR: Failed to create a listen socket"));
+	}
+
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -150,5 +160,24 @@ void CServerDlg::OnPaint()
 HCURSOR CServerDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
+}
+
+
+
+BOOL CServerDlg::DestroyWindow()
+{
+	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+	POSITION pos = m_pListenSocket->m_pChildSocketList.GetHeadPosition();
+	CChildSocket* pChild = NULL;
+	while (pos != NULL) {
+		pChild = (CChildSocket*)(m_pListenSocket->m_pChildSocketList.GetNext(pos));
+		if (pChild != NULL) {
+			pChild->ShutDown(); pChild->Close(); delete pChild;
+		}
+	}
+	m_pListenSocket->ShutDown();
+	m_pListenSocket->Close();
+	delete m_pListenSocket;
+	return CDialogEx::DestroyWindow();
 }
 

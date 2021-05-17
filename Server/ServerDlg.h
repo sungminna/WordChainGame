@@ -3,7 +3,9 @@
 //
 
 #pragma once
+#include "afxwin.h"
 
+#include "ListenSocket.h"
 
 // CServerDlg 대화 상자
 class CServerDlg : public CDialogEx
@@ -31,4 +33,8 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+	CEdit m_ctrlEdit;
+	CListenSocket* m_pListenSocket;
+	virtual BOOL DestroyWindow();
 };

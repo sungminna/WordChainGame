@@ -51,6 +51,10 @@ END_MESSAGE_MAP()
 
 CWordChainGameDlg::CWordChainGameDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_WORDCHAINGAME_DIALOG, pParent)
+	, m_strAddress(_T("127.0.0.1"))
+	, m_nPort(7000)
+	, m_strID(_T(""))
+	, m_strPASSWORD(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -58,12 +62,20 @@ CWordChainGameDlg::CWordChainGameDlg(CWnd* pParent /*=NULL*/)
 void CWordChainGameDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_EDIT1, m_strAddress);
+	DDX_Text(pDX, IDC_EDIT2, m_nPort);
+	DDX_Control(pDX, IDC_EDIT3, m_ctrlEdit);
+	DDX_Text(pDX, IDC_EDIT4, m_strID);
+	DDX_Text(pDX, IDC_EDIT5, m_strPASSWORD);
 }
 
 BEGIN_MESSAGE_MAP(CWordChainGameDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDC_BUTTON1, &CWordChainGameDlg::OnBnClickedButton1)
+	ON_STN_CLICKED(IDC_STATIC2, &CWordChainGameDlg::OnStnClickedStatic2)
+	ON_BN_CLICKED(IDC_BUTTON2, &CWordChainGameDlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 
@@ -152,3 +164,50 @@ HCURSOR CWordChainGameDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CWordChainGameDlg::OnBnClickedButton1()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	m_pClientSocket = new CClientSocket;
+	m_pClientSocket->Create();
+	CString str; str.Format(_T("[나] 서버(%s:%d)와 연결합니다.\r\n"), m_strAddress, m_nPort);
+	m_ctrlEdit.ReplaceSel(str);
+	this->UpdateData(TRUE);	// 컨트롤에 입력된 내용을 멤버변수에 넣는다.
+	bool success = m_pClientSocket->Connect(m_strAddress, m_nPort);
+	if (!success) m_ctrlEdit.ReplaceSel(_T("[error] 서버와 연결하지 못했습니다.\r\n"));
+}
+
+
+void CWordChainGameDlg::OnStnClickedStatic2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+BOOL CWordChainGameDlg::DestroyWindow()
+{
+	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+	m_pClientSocket->ShutDown();
+	m_pClientSocket->Close();
+	delete m_pClientSocket;
+	return CDialogEx::DestroyWindow();
+}
+
+
+void CWordChainGameDlg::OnBnClickedButton2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	this->UpdateData(TRUE);
+	m_strID.Append(_T(" "));
+	m_strPASSWORD.Append(_T("\r\n"));
+	CString msg;	//보낼 쿼리
+	msg.Append(m_strID);
+	msg.Append(m_strPASSWORD);
+	m_pClientSocket->Send(msg, msg.GetLength());
+	m_strID = _T("");
+	m_strPASSWORD = _T("");
+	this->UpdateData(FALSE);
+
+	
+}
