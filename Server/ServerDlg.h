@@ -4,8 +4,8 @@
 
 #pragma once
 #include "afxwin.h"
-
 #include "ListenSocket.h"
+#include "mysql.h"
 
 // CServerDlg 대화 상자
 class CServerDlg : public CDialogEx
@@ -37,4 +37,7 @@ public:
 	CEdit m_ctrlEdit;
 	CListenSocket* m_pListenSocket;
 	virtual BOOL DestroyWindow();
+	MYSQL m_mysql;
+	void SignUp(CString id, CString password);
+	void Login(CString id, CString password);
 };

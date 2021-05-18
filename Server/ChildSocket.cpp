@@ -40,6 +40,7 @@ void CChildSocket::OnClose(int nErrorCode)
 void CChildSocket::OnReceive(int nErrorCode)
 {
 	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+	//메시지 받고 난 후
 	CString strlPAddress; UINT uPortNumber;
 	GetPeerName(strlPAddress, uPortNumber);
 
@@ -54,10 +55,29 @@ void CChildSocket::OnReceive(int nErrorCode)
 	default:
 		szBuffer[nRead] = _T('\0');
 		CString str; str.Format(_T("[%s:%u] %s"), strlPAddress, uPortNumber, szBuffer);
+		//CString str; str.Format(_T("[%s:%u] %c"), strlPAddress, uPortNumber, szBuffer[0]);
+
 		CServerDlg* pMain = (CServerDlg*)AfxGetMainWnd();
 		pMain->m_ctrlEdit.ReplaceSel(str);
 
-		//m_pListenSocket->Broadcast(str);	브로드캐스트 필요 x
+		CServerDlg* pDlg = (CServerDlg*)AfxGetMainWnd();
+
+		if (szBuffer[0] == '0') {
+			//회원가입
+			CString ID, PASSWORD;
+			AfxExtractSubString(ID, szBuffer, 1, ' ');
+			AfxExtractSubString(PASSWORD, szBuffer, 2, ' ');
+			pDlg->SignUp(ID, PASSWORD);
+		}
+		else if (szBuffer[0] == '1') {
+			//로그인
+			CString ID, PASSWORD;
+			AfxExtractSubString(ID, szBuffer, 1, ' ');
+			AfxExtractSubString(PASSWORD, szBuffer, 2, ' ');
+			pDlg->Login(ID, PASSWORD);
+		}
+
+
 		break;
 	}
 	CSocket::OnReceive(nErrorCode);

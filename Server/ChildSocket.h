@@ -12,6 +12,8 @@ public:
 	CListenSocket* m_pListenSocket;
 	virtual void OnClose(int nErrorCode);
 	virtual void OnReceive(int nErrorCode);
+//	void SignUp(CString id, CString password);
+//	void Login(CString id, CString password);
 };
 
 

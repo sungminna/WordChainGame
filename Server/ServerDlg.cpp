@@ -101,6 +101,20 @@ BOOL CServerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+
+	//db 연결
+	mysql_init(&m_mysql);
+	MYSQL *conn = mysql_real_connect(&m_mysql, "localhost", "user1", "pass01", "db1", 3306, (char*)NULL, 0);
+	if (conn == NULL) {
+		AfxMessageBox((LPCTSTR)mysql_error(&m_mysql));
+		::PostQuitMessage(0); 
+		return FALSE;
+	}
+	this->m_ctrlEdit.ReplaceSel(_T("MySQL 서버와 연결되엇습니다\r\n"));
+	mysql_set_character_set(&m_mysql, "euckr");
+
+
+	//서버 실행
 	m_pListenSocket = new CListenSocket;
 	if (m_pListenSocket->Create(7000, SOCK_STREAM)) {
 		if (m_pListenSocket->Listen()) {
@@ -167,6 +181,10 @@ HCURSOR CServerDlg::OnQueryDragIcon()
 BOOL CServerDlg::DestroyWindow()
 {
 	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+	//db
+	mysql_close(&m_mysql);
+
+	//서버
 	POSITION pos = m_pListenSocket->m_pChildSocketList.GetHeadPosition();
 	CChildSocket* pChild = NULL;
 	while (pos != NULL) {
@@ -181,3 +199,35 @@ BOOL CServerDlg::DestroyWindow()
 	return CDialogEx::DestroyWindow();
 }
 
+
+
+void CServerDlg::SignUp(CString id, CString password)
+{
+	//회원가입
+	CString query;
+	query.Format(_T("insert into member (id,pw) values ('%s',password('%s'))"), id, password);
+	int status = mysql_query(&m_mysql, query);
+	int UserNo = mysql_insert_id(&m_mysql);
+	CString str;
+	AfxMessageBox("회원가입 완료");
+}
+
+
+void CServerDlg::Login(CString id, CString password)
+{
+	//로그인
+	CString query;
+	query.Format(_T("select * from member where id='%s' and pw=password('%s')"), id, password);
+	int status = mysql_query(&m_mysql, query);
+	MYSQL_RES *result = mysql_store_result(&m_mysql);
+	int nRowCount = mysql_num_rows(result);
+	if (nRowCount > 0) {
+		MYSQL_ROW row = mysql_fetch_row(result);
+		int UserNo = atoi(row[0]);
+		AfxMessageBox("로그인 왼료");
+	}
+	else {
+		AfxMessageBox("실패");
+	}
+
+}

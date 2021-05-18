@@ -43,4 +43,5 @@ public:
 	afx_msg void OnBnClickedButton2();
 	CString m_strID;
 	CString m_strPASSWORD;
+	afx_msg void OnBnClickedButton3();
 };

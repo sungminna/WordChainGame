@@ -76,6 +76,7 @@ BEGIN_MESSAGE_MAP(CWordChainGameDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON1, &CWordChainGameDlg::OnBnClickedButton1)
 	ON_STN_CLICKED(IDC_STATIC2, &CWordChainGameDlg::OnStnClickedStatic2)
 	ON_BN_CLICKED(IDC_BUTTON2, &CWordChainGameDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON3, &CWordChainGameDlg::OnBnClickedButton3)
 END_MESSAGE_MAP()
 
 
@@ -199,15 +200,31 @@ void CWordChainGameDlg::OnBnClickedButton2()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	this->UpdateData(TRUE);
-	m_strID.Append(_T(" "));
-	m_strPASSWORD.Append(_T("\r\n"));
 	CString msg;	//보낼 쿼리
+	msg.Append(_T("0 "));
 	msg.Append(m_strID);
+	msg.Append(_T(" "));
 	msg.Append(m_strPASSWORD);
+	msg.Append(_T("\r\n"));
 	m_pClientSocket->Send(msg, msg.GetLength());
 	m_strID = _T("");
 	m_strPASSWORD = _T("");
 	this->UpdateData(FALSE);
+}
 
-	
+
+void CWordChainGameDlg::OnBnClickedButton3()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	this->UpdateData(TRUE);
+	CString msg;	//보낼 쿼리
+	msg.Append(_T("1 "));
+	msg.Append(m_strID);
+	msg.Append(_T(" "));
+	msg.Append(m_strPASSWORD);
+	msg.Append(_T("\r\n"));
+	m_pClientSocket->Send(msg, msg.GetLength());
+	m_strID = _T("");
+	m_strPASSWORD = _T("");
+	this->UpdateData(FALSE);
 }
