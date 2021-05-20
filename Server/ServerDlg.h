@@ -6,6 +6,8 @@
 #include "afxwin.h"
 #include "ListenSocket.h"
 #include "mysql.h"
+#include<map>
+using namespace std;
 
 // CServerDlg 대화 상자
 class CServerDlg : public CDialogEx
@@ -38,6 +40,9 @@ public:
 	CListenSocket* m_pListenSocket;
 	virtual BOOL DestroyWindow();
 	MYSQL m_mysql;
-	void SignUp(CString id, CString password);
-	void Login(CString id, CString password);
+	void SignUp(CString id, CString password, UINT port);
+	void Login(CString id, CString password, UINT port);
+	map<UINT, CString> m_usermap;
+	void Ready(int isready, CString username, CString msg);
+	map<CString, int> m_ready;
 };

@@ -55,11 +55,12 @@ void CChildSocket::OnReceive(int nErrorCode)
 	default:
 		szBuffer[nRead] = _T('\0');
 		CString str; str.Format(_T("[%s:%u] %s"), strlPAddress, uPortNumber, szBuffer);
-		//CString str; str.Format(_T("[%s:%u] %c"), strlPAddress, uPortNumber, szBuffer[0]);
 
 		CServerDlg* pMain = (CServerDlg*)AfxGetMainWnd();
 		pMain->m_ctrlEdit.ReplaceSel(str);
 
+		CListenSocket* pListen = (CListenSocket*)AfxGetMainWnd();
+		
 		CServerDlg* pDlg = (CServerDlg*)AfxGetMainWnd();
 
 		if (szBuffer[0] == '0') {
@@ -67,16 +68,35 @@ void CChildSocket::OnReceive(int nErrorCode)
 			CString ID, PASSWORD;
 			AfxExtractSubString(ID, szBuffer, 1, ' ');
 			AfxExtractSubString(PASSWORD, szBuffer, 2, ' ');
-			pDlg->SignUp(ID, PASSWORD);
+			pDlg->SignUp(ID, PASSWORD, uPortNumber);
 		}
 		else if (szBuffer[0] == '1') {
 			//로그인
 			CString ID, PASSWORD;
 			AfxExtractSubString(ID, szBuffer, 1, ' ');
 			AfxExtractSubString(PASSWORD, szBuffer, 2, ' ');
-			pDlg->Login(ID, PASSWORD);
+			pDlg->Login(ID, PASSWORD, uPortNumber);
 		}
+		else if (szBuffer[0] == '2') {
+			//준비 여부
+			CString status;
+			CString username;
+			CString msg;
+			AfxExtractSubString(status, szBuffer, 1, ' ');
 
+			if (status == "ready") {
+				//준비
+				username = pDlg->m_usermap.at(uPortNumber);
+				msg.Format(_T("2 %s y \r\n"), username);
+				pDlg->Ready(1, username, msg);
+			}
+			else {
+				//준비 취소
+				username = pDlg->m_usermap.at(uPortNumber);
+				msg.Format(_T("2 %s n \r\n"), username);
+				pDlg->Ready(0, username, msg);
+			}
+		}
 
 		break;
 	}

@@ -8,6 +8,7 @@
 #include "afxdialogex.h"
 #include "ChildSocket.h"
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -201,7 +202,7 @@ BOOL CServerDlg::DestroyWindow()
 
 
 
-void CServerDlg::SignUp(CString id, CString password)
+void CServerDlg::SignUp(CString id, CString password, UINT port)
 {
 	//회원가입
 	CString query;
@@ -209,11 +210,18 @@ void CServerDlg::SignUp(CString id, CString password)
 	int status = mysql_query(&m_mysql, query);
 	int UserNo = mysql_insert_id(&m_mysql);
 	CString str;
-	AfxMessageBox("회원가입 완료");
+	str.Format(_T("0 %s \r\n"), id);
+	CServerDlg* pMain = (CServerDlg*)AfxGetMainWnd();
+	pMain->m_ctrlEdit.ReplaceSel(str);
+	//map 연결
+	m_usermap.insert(pair<UINT, CString>(port, id));
+	m_ready.insert(pair<CString, int>(id, 0));
+
+	m_pListenSocket->Broadcast(str);
 }
 
 
-void CServerDlg::Login(CString id, CString password)
+void CServerDlg::Login(CString id, CString password, UINT port)
 {
 	//로그인
 	CString query;
@@ -224,10 +232,51 @@ void CServerDlg::Login(CString id, CString password)
 	if (nRowCount > 0) {
 		MYSQL_ROW row = mysql_fetch_row(result);
 		int UserNo = atoi(row[0]);
-		AfxMessageBox("로그인 왼료");
+		CString str;
+		str.Format(_T("1 %s \r\n"), id);
+		CServerDlg* pMain = (CServerDlg*)AfxGetMainWnd();
+		pMain->m_ctrlEdit.ReplaceSel(str);
+		//map 연결
+		m_usermap.insert(pair<UINT, CString>(port, id));
+		m_ready.insert(pair<CString, int>(id, 0));
+
+		m_pListenSocket->Broadcast(str);
 	}
 	else {
 		AfxMessageBox("실패");
 	}
 
+}
+
+
+void CServerDlg::Ready(int isready, CString username, CString msg)
+{
+	if (isready == 1) {
+		//준비
+		m_pListenSocket->Broadcast(msg);
+		m_ready[username] = 1;
+	}
+	else {
+		//준비 해제
+		m_pListenSocket->Broadcast(msg);
+		m_ready[username] = 0;
+	}
+
+	//준비 확인
+	int result = 1;
+	for (auto it = m_ready.begin(); it != m_ready.end(); it++) {
+
+		if (it->second == 0) result = 0;
+	}
+	if (result == 1 && m_ready.size()==2) {
+		//모두 준비 및 2명 로그인-> 게임 시작
+		CString query;
+		query.Append(_T("4 \r\n"));
+		Sleep(1000);	//딜레이가 없으면 Client 단에서 인게임 다이얼로그가 생성되지 않는다!!
+		m_pListenSocket->Broadcast(query);
+
+		CServerDlg* pMain = (CServerDlg*)AfxGetMainWnd();
+		pMain->m_ctrlEdit.ReplaceSel(query);
+	}
+	
 }

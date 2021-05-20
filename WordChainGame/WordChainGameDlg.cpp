@@ -77,6 +77,7 @@ BEGIN_MESSAGE_MAP(CWordChainGameDlg, CDialogEx)
 	ON_STN_CLICKED(IDC_STATIC2, &CWordChainGameDlg::OnStnClickedStatic2)
 	ON_BN_CLICKED(IDC_BUTTON2, &CWordChainGameDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_BUTTON3, &CWordChainGameDlg::OnBnClickedButton3)
+	ON_BN_CLICKED(IDC_BUTTON4, &CWordChainGameDlg::OnBnClickedButton4)
 END_MESSAGE_MAP()
 
 
@@ -199,6 +200,7 @@ BOOL CWordChainGameDlg::DestroyWindow()
 void CWordChainGameDlg::OnBnClickedButton2()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	//회원가입 버튼
 	this->UpdateData(TRUE);
 	CString msg;	//보낼 쿼리
 	msg.Append(_T("0 "));
@@ -216,6 +218,7 @@ void CWordChainGameDlg::OnBnClickedButton2()
 void CWordChainGameDlg::OnBnClickedButton3()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	//로그인 버튼
 	this->UpdateData(TRUE);
 	CString msg;	//보낼 쿼리
 	msg.Append(_T("1 "));
@@ -227,4 +230,24 @@ void CWordChainGameDlg::OnBnClickedButton3()
 	m_strID = _T("");
 	m_strPASSWORD = _T("");
 	this->UpdateData(FALSE);
+}
+
+
+void CWordChainGameDlg::OnBnClickedButton4()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	//준비 버튼
+	CString strButton4;
+	CString msg;
+	GetDlgItemText(IDC_BUTTON4, strButton4);
+	if (!strButton4.Compare(_T("준비"))) {
+		msg.Append(_T("2 ready \r\n"));
+		m_pClientSocket->Send(msg, msg.GetLength());
+		SetDlgItemText(IDC_BUTTON4, _T("준비해제"));
+	}
+	else {
+		msg.Append(_T("2 notready \r\n"));
+		m_pClientSocket->Send(msg, msg.GetLength());
+		SetDlgItemText(IDC_BUTTON4, _T("준비"));
+	}
 }

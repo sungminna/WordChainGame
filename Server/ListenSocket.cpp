@@ -34,7 +34,7 @@ void CListenSocket::OnAccept(int nErrorCode)
 
 	CString strSocketName; UINT uPort;
 	pChild->GetPeerName(strSocketName, uPort);
-	CString str; str.Format(_T("[%s:%d] 서버 접속을 승인합니다.\r\n"), strSocketName, uPort);
+	CString str; str.Format(_T("3 [%s:%d] 서버 접속을 승인합니다.\r\n"), strSocketName, uPort);
 	CServerDlg* pMain = (CServerDlg*)AfxGetMainWnd();
 	pMain->m_ctrlEdit.ReplaceSel(str);
 
@@ -43,4 +43,14 @@ void CListenSocket::OnAccept(int nErrorCode)
 	pChild->m_pListenSocket = this;
 
 	CAsyncSocket::OnAccept(nErrorCode);
+}
+
+
+void CListenSocket::Broadcast(CString strMessage)
+{
+	POSITION pos = m_pChildSocketList.GetHeadPosition();
+	while (pos != NULL) {
+		CChildSocket* pChild = (CChildSocket*)m_pChildSocketList.GetNext(pos);
+		if (pChild != NULL) pChild->Send(strMessage.GetBuffer(), strMessage.GetLength());
+	}
 }
