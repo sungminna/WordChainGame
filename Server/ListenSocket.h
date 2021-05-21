@@ -10,6 +10,7 @@ public:
 	CPtrList m_pChildSocketList;
 	virtual void OnAccept(int nErrorCode);
 	void Broadcast(CString strMessage);
+//	MYSQL m_mysql;
 };
 
 

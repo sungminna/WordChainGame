@@ -94,14 +94,26 @@ void CClientSocket::OnReceive(int nErrorCode)
 			CString str1;
 			CString str2;
 			CString str3;
-			CString str4;
 			CString msg;
 			AfxExtractSubString(str1, szBuff, 1, ' ');
 			AfxExtractSubString(str2, szBuff, 2, ' ');
 			AfxExtractSubString(str3, szBuff, 3, ' ');
-			AfxExtractSubString(str4, szBuff, 4, ' ');
-			msg.Format(_T("%s %s %s %s"), str1, str2, str3, str4);
+			msg.Format(_T("%s %s %s \r\n"), str1, str2, str3);
 			pMain->m_ctrlEdit.ReplaceSel(msg);
+			
+		}
+		else if (szBuff[0] == '4') {
+			
+			CString name, point;
+			CString msg;
+			for (int i = 0; i < 10; i+=2) {
+
+				AfxExtractSubString(name, szBuff, i+1, ' ');
+				AfxExtractSubString(point, szBuff, i+2, ' ');
+				msg.Format(_T("%s\t\t%s \r\n"), name, point);
+				pMain->m_ctrlLeaderBoard.ReplaceSel(msg);
+			}
+
 		}
 		else {	//게임 시작
 

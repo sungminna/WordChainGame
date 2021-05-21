@@ -45,4 +45,7 @@ public:
 	CString m_strPASSWORD;
 	afx_msg void OnBnClickedButton3();
 	afx_msg void OnBnClickedButton4();
+//	CString m_strLeaderBoard;
+//	CEdit m_editLeaderBoard;
+	CEdit m_ctrlLeaderBoard;
 };

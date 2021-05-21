@@ -67,6 +67,7 @@ void CWordChainGameDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT3, m_ctrlEdit);
 	DDX_Text(pDX, IDC_EDIT4, m_strID);
 	DDX_Text(pDX, IDC_EDIT5, m_strPASSWORD);
+	DDX_Control(pDX, IDC_EDIT6, m_ctrlLeaderBoard);
 }
 
 BEGIN_MESSAGE_MAP(CWordChainGameDlg, CDialogEx)

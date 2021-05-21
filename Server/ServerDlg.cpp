@@ -271,7 +271,7 @@ void CServerDlg::Ready(int isready, CString username, CString msg)
 	if (result == 1 && m_ready.size()==2) {
 		//모두 준비 및 2명 로그인-> 게임 시작
 		CString query;
-		query.Append(_T("4 \r\n"));
+		query.Append(_T("5 \r\n"));
 		Sleep(1000);	//딜레이가 없으면 Client 단에서 인게임 다이얼로그가 생성되지 않는다!!
 		m_pListenSocket->Broadcast(query);
 
