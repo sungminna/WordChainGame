@@ -46,21 +46,6 @@ void CClientSocket::OnReceive(int nErrorCode)
 	default: 
 		szBuff[nRead] = _T('\0');
 		CWordChainGameDlg* pMain = (CWordChainGameDlg*)AfxGetMainWnd();
-		switch (szBuff[0]) {
-		case '0':	//회원가입
-			break;
-		case '1':	//로그인
-			break;
-		case '2':	//준비
-			break;
-		case '3':	//서버 연결
-			break;
-		case '4':	//게임 시작
-			break;
-		default:
-			break;
-		}
-
 
 		if (szBuff[0] == '0') {	//회원가입
 			CString name;
@@ -68,6 +53,20 @@ void CClientSocket::OnReceive(int nErrorCode)
 			AfxExtractSubString(name, szBuff, 1, ' ');
 			msg.Format(_T("%s 님이 회원가입 하셨습니다\r\n"), name);
 			pMain->m_ctrlEdit.ReplaceSel(msg);
+
+			if (pMain->m_strID == name) {	//내가 회원가입
+				pMain->m_strID = _T("");
+				pMain->m_strPASSWORD = _T("");
+				CString text;
+				text.Format(_T("%s 님 안녕하세요!!"), name);
+				pMain->SetDlgItemText(IDC_STATIC11, text);
+				//비활성화 및 활성화
+				pMain->GetDlgItem(IDC_EDIT4)->EnableWindow(FALSE);
+				pMain->GetDlgItem(IDC_EDIT5)->EnableWindow(FALSE);
+				pMain->GetDlgItem(IDC_BUTTON2)->EnableWindow(FALSE);
+				pMain->GetDlgItem(IDC_BUTTON3)->EnableWindow(FALSE);
+				pMain->GetDlgItem(IDC_BUTTON4)->EnableWindow(TRUE);
+			}
 		}
 		else if (szBuff[0] == '1') {	//로그인
 			CString name;
@@ -75,6 +74,21 @@ void CClientSocket::OnReceive(int nErrorCode)
 			AfxExtractSubString(name, szBuff, 1, ' ');
 			msg.Format(_T("%s 님이 로그인 하셨습니다\r\n"), name);
 			pMain->m_ctrlEdit.ReplaceSel(msg);
+
+			if (pMain->m_strID == name) {	//내가 로그인
+				pMain->m_strID = _T("");
+				pMain->m_strPASSWORD = _T("");
+				CString text;
+				text.Format(_T("%s 님 안녕하세요!!"), name);
+				pMain->SetDlgItemText(IDC_STATIC11, text);
+				//비활성화 및 활성화
+				pMain->GetDlgItem(IDC_EDIT4)->EnableWindow(FALSE);
+				pMain->GetDlgItem(IDC_EDIT5)->EnableWindow(FALSE);
+				pMain->GetDlgItem(IDC_BUTTON2)->EnableWindow(FALSE);
+				pMain->GetDlgItem(IDC_BUTTON3)->EnableWindow(FALSE);
+				pMain->GetDlgItem(IDC_BUTTON4)->EnableWindow(TRUE);
+
+			}
 		}
 		else if(szBuff[0] == '2'){	//준비 관련 메시지
 			CString name;
@@ -100,14 +114,20 @@ void CClientSocket::OnReceive(int nErrorCode)
 			AfxExtractSubString(str3, szBuff, 3, ' ');
 			msg.Format(_T("%s %s %s \r\n"), str1, str2, str3);
 			pMain->m_ctrlEdit.ReplaceSel(msg);
-			
+			//EditControl 비활성 및 활성화
+			pMain->GetDlgItem(IDC_EDIT1)->EnableWindow(FALSE);
+			pMain->GetDlgItem(IDC_EDIT2)->EnableWindow(FALSE);
+			pMain->GetDlgItem(IDC_BUTTON1)->EnableWindow(FALSE);
+			pMain->GetDlgItem(IDC_EDIT4)->EnableWindow(TRUE);
+			pMain->GetDlgItem(IDC_EDIT5)->EnableWindow(TRUE);
+			pMain->GetDlgItem(IDC_BUTTON2)->EnableWindow(TRUE);
+			pMain->GetDlgItem(IDC_BUTTON3)->EnableWindow(TRUE);
+
 		}
-		else if (szBuff[0] == '4') {
-			
+		else if (szBuff[0] == '4') {	//LeaderBoard 결과
 			CString name, point;
 			CString msg;
 			for (int i = 0; i < 10; i+=2) {
-
 				AfxExtractSubString(name, szBuff, i+1, ' ');
 				AfxExtractSubString(point, szBuff, i+2, ' ');
 				msg.Format(_T("%s\t\t%s \r\n"), name, point);

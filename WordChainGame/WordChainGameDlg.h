@@ -34,7 +34,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedButton1();
-	afx_msg void OnStnClickedStatic2();
+//	afx_msg void OnStnClickedStatic2();
 	CString m_strAddress;
 	int m_nPort;
 	CEdit m_ctrlEdit;
@@ -48,4 +48,5 @@ public:
 //	CString m_strLeaderBoard;
 //	CEdit m_editLeaderBoard;
 	CEdit m_ctrlLeaderBoard;
+	CEdit m_ctrlWho;
 };

@@ -24,6 +24,7 @@ CListenSocket::~CListenSocket()
 void CListenSocket::OnAccept(int nErrorCode)
 {
 	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+	//서버 연결 허용
 	CChildSocket* pChild = new CChildSocket;
 	BOOL check = Accept(*pChild);
 	if (check == FALSE) {
@@ -39,6 +40,7 @@ void CListenSocket::OnAccept(int nErrorCode)
 	pMain->m_ctrlEdit.ReplaceSel(str);
 	pChild->Send(str.GetBuffer(), str.GetLength());
 
+	//LeaderBoard 가져오기
 	CString query;
 	query.Format(_T("select * from member order by point desc"));
 	int status = mysql_query(&pMain->m_mysql, query);
@@ -46,10 +48,10 @@ void CListenSocket::OnAccept(int nErrorCode)
 	if (result) {
 		str.Format(_T("4 "));
 		CString temp;
+		CString name, point;
 		int nFieldCount = mysql_num_fields(result);
 		MYSQL_FIELD *fields = mysql_fetch_field(result);
 		MYSQL_ROW row;
-		CString name, point;
 
 		int i = 0;
 		while ((row = mysql_fetch_row(result))) {
@@ -58,7 +60,7 @@ void CListenSocket::OnAccept(int nErrorCode)
 			point = row[3];
 			temp = str;
 			str.Format(_T("%s%s %s "), temp, name, point);
-			if (i == 5) break;
+			if (i == 5) break;	//5명까지 가져오기
 		}
 		pMain->m_ctrlEdit.ReplaceSel(str);
 

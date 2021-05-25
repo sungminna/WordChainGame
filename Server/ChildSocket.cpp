@@ -56,12 +56,8 @@ void CChildSocket::OnReceive(int nErrorCode)
 		szBuffer[nRead] = _T('\0');
 		CString str; str.Format(_T("[%s:%u] %s"), strlPAddress, uPortNumber, szBuffer);
 
-		CServerDlg* pMain = (CServerDlg*)AfxGetMainWnd();
-		pMain->m_ctrlEdit.ReplaceSel(str);
-
-		CListenSocket* pListen = (CListenSocket*)AfxGetMainWnd();
-		
 		CServerDlg* pDlg = (CServerDlg*)AfxGetMainWnd();
+		pDlg->m_ctrlEdit.ReplaceSel(str);
 
 		if (szBuffer[0] == '0') {
 			//회원가입
