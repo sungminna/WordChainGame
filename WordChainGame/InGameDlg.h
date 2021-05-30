@@ -18,6 +18,11 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
-
+	
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnBnClickedAddBtn1();
+	afx_msg void OnBnClickedAddBtn2();
+	CListBox m_chat_list1;
+	CListBox m_chat_list2;
 };
