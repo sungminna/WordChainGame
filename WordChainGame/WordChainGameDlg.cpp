@@ -57,6 +57,7 @@ CWordChainGameDlg::CWordChainGameDlg(CWnd* pParent /*=NULL*/)
 	, m_strPASSWORD(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_cnt = 0;
 }
 
 void CWordChainGameDlg::DoDataExchange(CDataExchange* pDX)
@@ -78,6 +79,8 @@ BEGIN_MESSAGE_MAP(CWordChainGameDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON2, &CWordChainGameDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_BUTTON3, &CWordChainGameDlg::OnBnClickedButton3)
 	ON_BN_CLICKED(IDC_BUTTON4, &CWordChainGameDlg::OnBnClickedButton4)
+	ON_BN_CLICKED(IDOK, &CWordChainGameDlg::OnBnClickedOk)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -113,6 +116,7 @@ BOOL CWordChainGameDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -243,4 +247,59 @@ void CWordChainGameDlg::OnBnClickedButton4()
 		m_pClientSocket->Send(msg, msg.GetLength());
 		SetDlgItemText(IDC_BUTTON4, _T("준비"));
 	}
+}
+
+
+void CWordChainGameDlg::OnBnClickedOk()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+
+
+	//CDialogEx::OnOK();
+}
+
+
+void CWordChainGameDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+
+	CString msg;
+	if (nIDEvent == 1) {	//내턴
+
+		CString s_time;
+		s_time.Format(_T("%d"), m_cnt);
+		SetDlgItemText(IDC_STATIC20, s_time);
+		SetDlgItemText(IDC_STATIC19, _T(""));
+
+		m_cnt--;
+		this->UpdateData(FALSE);
+		if (m_cnt < 0) {	//timeout
+			msg.Format(_T("5 0 \r\n"));
+			m_pClientSocket->Send(msg, msg.GetLength());
+			KillTimer(1);
+		}
+		else {	//time left
+
+		}
+
+	}
+	else {	//상대턴
+
+		CString s_time;
+		s_time.Format(_T("%d"), m_cnt);
+		SetDlgItemText(IDC_STATIC19, s_time);
+		SetDlgItemText(IDC_STATIC20, _T(""));
+		m_cnt--;
+		this->UpdateData(FALSE);
+		if (m_cnt < 0) {	//timeout
+			//상대가 타임 아웃 되더라도 메시지는 보내지 않는다
+			KillTimer(2);
+		}
+		else {	//time left
+
+		}
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
 }

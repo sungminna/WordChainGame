@@ -49,4 +49,7 @@ public:
 //	CEdit m_editLeaderBoard;
 	CEdit m_ctrlLeaderBoard;
 	CEdit m_ctrlWho;
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	int m_cnt;
 };

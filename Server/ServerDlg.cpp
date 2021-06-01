@@ -216,6 +216,7 @@ void CServerDlg::SignUp(CString id, CString password, UINT port)
 	//map 연결
 	m_usermap.insert(pair<UINT, CString>(port, id));
 	m_ready.insert(pair<CString, int>(id, 0));
+	m_mapScore.insert(pair<CString, int>(id, 0));
 
 	m_pListenSocket->Broadcast(str);
 }
@@ -239,6 +240,8 @@ void CServerDlg::Login(CString id, CString password, UINT port)
 		//map 연결
 		m_usermap.insert(pair<UINT, CString>(port, id));
 		m_ready.insert(pair<CString, int>(id, 0));
+		m_mapScore.insert(pair<CString, int>(id, 0));
+
 
 		m_pListenSocket->Broadcast(str);
 	}
@@ -270,13 +273,37 @@ void CServerDlg::Ready(int isready, CString username, CString msg)
 	}
 	if (result == 1 && m_ready.size()==2) {
 		//모두 준비 및 2명 로그인-> 게임 시작
+
+		for (auto it = m_ready.begin(); it != m_ready.end(); it++) {
+			it->second = 0;
+		}
+		
+
 		CString query;
-		query.Append(_T("5 \r\n"));
+		query.Append(_T("9 \r\n"));
 		Sleep(1000);	//딜레이가 없으면 Client 단에서 인게임 다이얼로그가 생성되지 않는다!!
 		m_pListenSocket->Broadcast(query);
+		m_ctrlEdit.ReplaceSel(query);
 
-		CServerDlg* pMain = (CServerDlg*)AfxGetMainWnd();
-		pMain->m_ctrlEdit.ReplaceSel(query);
+
+		CString turn, myscore, otherscore, time, name1, name2;
+		CString temp;
+		turn = m_usermap.begin()->second;
+		Sleep(1000);
+
+		//시작 하기 위한 턴 주기
+		time.Format(_T("5000"));	//시작시 주는 시간 ms
+		query.Format(_T("5 %s %s "), turn, time);
+		for (auto it = m_mapScore.begin(); it != m_mapScore.end(); it++) {
+			temp.Format(_T("%s %d "), it->first, it->second);
+			query.Append(temp);
+		}
+		temp.Format(_T("\r\n"));
+		query.Append(temp);
+		
+		m_pListenSocket->Broadcast(query);
+
+		m_ctrlEdit.ReplaceSel(query);
 	}
 	
 }

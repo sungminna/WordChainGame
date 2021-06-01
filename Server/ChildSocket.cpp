@@ -30,6 +30,13 @@ void CChildSocket::OnClose(int nErrorCode)
 	CString str; str.Format(_T("[%s:%d] 연결 종료\r\n"), strSocketName, uPort);
 	CServerDlg* pMain = (CServerDlg*)AfxGetMainWnd();
 	pMain->m_ctrlEdit.ReplaceSel(str);
+	//map 에서 삭제
+	CString name;
+	name.Format(_T("%s"), pMain->m_usermap[uPort]);
+	pMain->m_usermap.erase(uPort);
+	pMain->m_ready.erase(name);
+	pMain->m_mapScore.erase(name);
+
 	this->ShutDown();
 	this-> Close();
 	delete this;
@@ -93,7 +100,42 @@ void CChildSocket::OnReceive(int nErrorCode)
 				pDlg->Ready(0, username, msg);
 			}
 		}
+		else if (szBuffer[0] == '5') {
+			//타임 아웃
+			CString username;
+			CString time, turn, query, temp;
+			username = pDlg->m_usermap.at(uPortNumber);
 
+			//점수 깍기
+			if (pDlg->m_mapScore.at(username) < 5) {	//0이하 스코어 존재 x
+				pDlg->m_mapScore.at(username) = 0;
+			}
+			else {
+				pDlg->m_mapScore.at(username) -= 5;	//깎을 점수 정하기
+			}
+			
+			//턴 넘기기
+			
+			for (auto it = pDlg->m_usermap.begin(); it != pDlg->m_usermap.end(); it++) {
+				if (username != it->second) {
+					turn = it->second;
+					break;
+				}
+			}
+
+			time.Format(_T("5000"));
+			query.Format(_T("5 %s %s "), turn, time);
+			for (auto it = pDlg->m_mapScore.begin(); it != pDlg->m_mapScore.end(); it++) {
+				temp.Format(_T("%s %d "), it->first, it->second);
+				query.Append(temp);
+			}
+			temp.Format(_T("\r\n"));
+			query.Append(temp);
+			m_pListenSocket->Broadcast(query);	//다음 턴 사람에게 메시지 보내기
+
+			pDlg->m_ctrlEdit.ReplaceSel(query);
+		}
+		
 		break;
 	}
 	CSocket::OnReceive(nErrorCode);

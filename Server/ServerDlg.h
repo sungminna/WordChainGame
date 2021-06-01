@@ -45,4 +45,5 @@ public:
 	map<UINT, CString> m_usermap;
 	void Ready(int isready, CString username, CString msg);
 	map<CString, int> m_ready;
+	map<CString, int> m_mapScore;
 };
