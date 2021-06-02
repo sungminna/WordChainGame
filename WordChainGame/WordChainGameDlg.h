@@ -52,4 +52,7 @@ public:
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	int m_cnt;
+	CEdit m_MyWord;
+	CEdit m_OtherWord;
+	CEdit m_ctrlArchive;
 };

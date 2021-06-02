@@ -14,6 +14,8 @@ public:
 	virtual void OnReceive(int nErrorCode);
 //	void SignUp(CString id, CString password);
 //	void Login(CString id, CString password);
+	CString m_prevword;
+	int m_isfirst;
 };
 
 

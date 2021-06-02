@@ -10,6 +10,8 @@
 
 CChildSocket::CChildSocket()
 {
+	m_prevword = _T("");
+	m_isfirst = 1;
 }
 
 CChildSocket::~CChildSocket()
@@ -129,13 +131,106 @@ void CChildSocket::OnReceive(int nErrorCode)
 				temp.Format(_T("%s %d "), it->first, it->second);
 				query.Append(temp);
 			}
+			temp.Format(_T("1 "));	//타임아웃에 의한 턴 변경
+			query.Append(temp);
 			temp.Format(_T("\r\n"));
 			query.Append(temp);
 			m_pListenSocket->Broadcast(query);	//다음 턴 사람에게 메시지 보내기
 
 			pDlg->m_ctrlEdit.ReplaceSel(query);
 		}
-		
+		else if (szBuffer[0] == '6') {	//단어 받음
+			
+			CString word;
+			CString query;
+			CString prev_R;
+			CString now_L;
+			int length;
+			int islink = 1;
+			int wrong_char = 0;	//잘못된 글자가 있을 시 1
+			int success;
+
+			AfxExtractSubString(word, szBuffer, 1, ' ');
+
+			//잘못된 글자 있는지 확인 추가 필요
+			wrong_char = 0;
+			length = word.GetLength();
+
+			//단어 확인
+
+
+			//링크 확인
+			prev_R = m_prevword.Right(1);
+			now_L = word.Left(1);
+			if (prev_R == now_L || m_isfirst == 1) {
+				islink = 1;
+			}
+			else {
+				islink = 0;
+			}
+
+			//rest 확인추가
+
+			
+			if (islink == 1 & length != 0 & wrong_char == 0) {
+				success = 1;
+			}
+			else {
+				success = 0;
+			}
+
+			//rest 확인추가
+
+
+
+
+			//성공시 1 실패시 0
+			query.Format(_T("6 %s %d \r\n"), word, success);
+
+			m_pListenSocket->Broadcast(query);
+			pDlg->m_ctrlEdit.ReplaceSel(query);
+			
+			if (success == 1) {	//성공
+				m_isfirst = 0;
+				m_prevword = word;	//prev에 word 저장
+				//턴 넘김
+				CString username;
+				CString time, turn, temp;
+				username = pDlg->m_usermap.at(uPortNumber);
+
+				//점수 주기
+				pDlg->m_mapScore.at(username) += 10;	//추가할 점수 정하기
+
+				//턴 넘기기
+
+				for (auto it = pDlg->m_usermap.begin(); it != pDlg->m_usermap.end(); it++) {
+					if (username != it->second) {
+						turn = it->second;
+						break;
+					}
+				}
+
+				time.Format(_T("5000"));	//시간 정하기
+				query.Format(_T("5 %s %s "), turn, time);
+				for (auto it = pDlg->m_mapScore.begin(); it != pDlg->m_mapScore.end(); it++) {
+					temp.Format(_T("%s %d "), it->first, it->second);
+					query.Append(temp);
+				}
+				temp.Format(_T("0 "));	//타임아웃에 의한 턴 변경(주기)아니다
+				query.Append(temp);
+				temp.Format(_T("\r\n"));
+				query.Append(temp);
+				m_pListenSocket->Broadcast(query);	//다음 턴 사람에게 메시지 보내기
+
+				pDlg->m_ctrlEdit.ReplaceSel(query);
+			}
+			else {	//실패
+
+				
+			}
+
+		}
+
 		break;
 	}
 	CSocket::OnReceive(nErrorCode);

@@ -14,6 +14,7 @@ public:
 	CString m_MyScore;
 	CString m_OtherScore;
 	int m_itime;
+	CString m_MyLastInput;
 };
 
 

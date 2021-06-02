@@ -69,6 +69,9 @@ void CWordChainGameDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT4, m_strID);
 	DDX_Text(pDX, IDC_EDIT5, m_strPASSWORD);
 	DDX_Control(pDX, IDC_EDIT6, m_ctrlLeaderBoard);
+	DDX_Control(pDX, IDC_EDIT8, m_MyWord);
+	DDX_Control(pDX, IDC_EDIT9, m_OtherWord);
+	DDX_Control(pDX, IDC_EDIT7, m_ctrlArchive);
 }
 
 BEGIN_MESSAGE_MAP(CWordChainGameDlg, CDialogEx)
@@ -253,7 +256,16 @@ void CWordChainGameDlg::OnBnClickedButton4()
 void CWordChainGameDlg::OnBnClickedOk()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-
+	CString msg;
+	CString word;
+	this->UpdateData(TRUE);
+	GetDlgItemText(IDC_EDIT8, word);
+	msg.Format(_T("6 %s \r\n"), word);
+	m_pClientSocket->Send(msg, msg.GetLength());
+	SetDlgItemText(IDC_EDIT8, _T(""));
+	GetDlgItem(IDC_EDIT8)->EnableWindow(FALSE);
+	this->UpdateData(FALSE);
+	GetDlgItem(IDOK)->EnableWindow(FALSE);
 
 	//CDialogEx::OnOK();
 }
@@ -275,6 +287,8 @@ void CWordChainGameDlg::OnTimer(UINT_PTR nIDEvent)
 		m_cnt--;
 		this->UpdateData(FALSE);
 		if (m_cnt < 0) {	//timeout
+			GetDlgItem(IDC_EDIT8)->EnableWindow(FALSE);
+			SetDlgItemText(IDC_EDIT8, _T(""));
 			msg.Format(_T("5 0 \r\n"));
 			m_pClientSocket->Send(msg, msg.GetLength());
 			KillTimer(1);
@@ -294,6 +308,7 @@ void CWordChainGameDlg::OnTimer(UINT_PTR nIDEvent)
 		this->UpdateData(FALSE);
 		if (m_cnt < 0) {	//timeout
 			//상대가 타임 아웃 되더라도 메시지는 보내지 않는다
+			SetDlgItemText(IDC_EDIT9, _T(""));
 			KillTimer(2);
 		}
 		else {	//time left

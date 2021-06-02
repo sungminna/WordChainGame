@@ -16,6 +16,7 @@ CClientSocket::CClientSocket()
 	m_MyScore = _T("");
 	m_OtherScore = _T("");
 	m_itime = 0;
+	m_MyLastInput = _T("");
 }
 
 CClientSocket::~CClientSocket()
@@ -136,6 +137,7 @@ void CClientSocket::OnReceive(int nErrorCode)
 		else if (szBuff[0] == '4') {	//LeaderBoard 결과
 			CString name, score;
 			CString msg;
+			pMain->SetDlgItemTextA(IDC_EDIT6, _T(""));
 			for (int i = 0; i < 10; i+=2) {
 				AfxExtractSubString(name, szBuff, i+1, ' ');
 				AfxExtractSubString(score, szBuff, i+2, ' ');
@@ -147,11 +149,14 @@ void CClientSocket::OnReceive(int nErrorCode)
 		else if (szBuff[0] == '5') {	//내턴 or 상대턴
 			CString turn, time;
 			CString name1, name2;
-			
+			CString timeout;
+			int itimeout;
 			AfxExtractSubString(turn, szBuff, 1, ' ');
 			AfxExtractSubString(time, szBuff, 2, ' ');
 			AfxExtractSubString(name1, szBuff, 3, ' ');
 			AfxExtractSubString(name2, szBuff, 5, ' ');
+			AfxExtractSubString(timeout, szBuff, 7, ' ');
+			itimeout = _ttoi(timeout);
 
 			m_itime = _ttoi(time);
 			pMain->m_cnt = m_itime / 1000;
@@ -169,11 +174,20 @@ void CClientSocket::OnReceive(int nErrorCode)
 				pMain->SetDlgItemText(IDC_STATIC14, m_OtherScore);
 
 			}
-
+			
 			m_turn = turn;
+			
 			CString text;
+			CString msg;
 
 			if (m_turn == m_ID) {	//내턴
+				if (itimeout == 1) {	//타임아웃에 의한 턴 변경일 시 내가 쓴 글자를 이어야 한다
+					pMain->SetDlgItemText(IDC_EDIT9, m_MyLastInput);	//내가 마지막으로 입력한 글자를 넣어준다
+					msg.Format(_T("상대가 입력하지 못하였습니다 \r\n"));
+					pMain->m_ctrlArchive.ReplaceSel(msg);
+				}
+				pMain->GetDlgItem(IDOK)->EnableWindow(TRUE);
+				pMain->GetDlgItem(IDC_EDIT8)->EnableWindow(TRUE);
 				text.Format(_T("내턴 입니다!!"));
 				pMain->SetDlgItemText(IDC_STATIC18, text);
 				pMain->KillTimer(2);
@@ -182,6 +196,7 @@ void CClientSocket::OnReceive(int nErrorCode)
 
 			}
 			else {	//상대턴
+				pMain->GetDlgItem(IDOK)->EnableWindow(FALSE);
 				text.Format(_T("상대턴 입니다!!"));
 				pMain->SetDlgItemText(IDC_STATIC18, text);
 				pMain->KillTimer(1);
@@ -189,39 +204,106 @@ void CClientSocket::OnReceive(int nErrorCode)
 				pMain->SetTimer(2, 1000, NULL);	//1초마다
 
 			}
+			
 		}
 		else if (szBuff[0] == '6') {	//단어 받음
+			pMain->UpdateData(TRUE);
 			CString word, correct, msg;
 			AfxExtractSubString(word, szBuff, 1, ' ');
 			AfxExtractSubString(correct, szBuff, 2, ' ');
 
 			if (m_turn == m_ID) {	//내턴
+				
 				if (correct == '1') {	//올바른 단어
-					msg.Format(_T("%s \r\n"), word);
+					m_MyLastInput.Format(word);
+					pMain->SetDlgItemText(IDC_EDIT9, _T(""));
+					msg.Format(_T("나: %s \r\n"), word);
+					pMain->m_ctrlArchive.ReplaceSel(msg);
 
 				}
 				else {	//틀린 단어
-
+					pMain->GetDlgItem(IDC_EDIT8)->EnableWindow(TRUE);
+					pMain->SetDlgItemText(IDC_EDIT8, _T(""));
+					pMain->GetDlgItem(IDOK)->EnableWindow(TRUE);
 				}
 			}
 			else {	//상대턴
+				pMain->SetDlgItemText(IDC_EDIT9, word);
+				if (correct == '1') {	//올바른 단어
+					msg.Format(_T("상대: %s \r\n"), word);
+					pMain->m_ctrlArchive.ReplaceSel(msg);
+	
 
+				}
+				else {	//틀린 단어
+					
+				}
 			}
+			pMain->UpdateData(FALSE);
 		}
-		else if (szBuff[0] == '7') {	//생명 확인
-			CString mypoint, otherpoint;
-			AfxExtractSubString(mypoint, szBuff, 1, ' ');
-			AfxExtractSubString(otherpoint, szBuff, 2, ' ');
+		else if (szBuff[0] == '7') {	//게임 종료
+			//타이머 제거
+			pMain->KillTimer(1);
+			pMain -> KillTimer(2);
+
+			CString name1, name2, winner;
+
+			AfxExtractSubString(name1, szBuff, 1, ' ');
+			AfxExtractSubString(name2, szBuff, 3, ' ');
+			AfxExtractSubString(winner, szBuff, 5, ' ');
+
+			if (name1 == m_ID) {
+				AfxExtractSubString(m_MyScore, szBuff, 2, ' ');
+				AfxExtractSubString(m_OtherScore, szBuff, 4, ' ');
+			}
+			else {
+				AfxExtractSubString(m_MyScore, szBuff, 4, ' ');
+				AfxExtractSubString(m_OtherScore, szBuff, 2, ' ');
+			}
+
+			//다이얼로그 초기화
+			pMain->GetDlgItem(IDOK)->EnableWindow(FALSE);
+
+			pMain->SetDlgItemText(IDC_EDIT7, _T(""));
+			pMain->SetDlgItemText(IDC_EDIT8, _T(""));
+			pMain->SetDlgItemText(IDC_EDIT9, _T(""));
+
+			pMain->SetDlgItemTextA(IDC_STATIC14, _T("0"));
+			pMain->SetDlgItemTextA(IDC_STATIC15, _T("0"));
+			pMain->SetDlgItemTextA(IDC_STATIC18, _T("기다리세요!"));
+			pMain->SetDlgItemTextA(IDC_STATIC19, _T("0"));
+			pMain->SetDlgItemTextA(IDC_STATIC20, _T("0"));
+
+			pMain->GetDlgItem(IDC_EDIT7)->EnableWindow(FALSE);
+			pMain->GetDlgItem(IDC_EDIT8)->EnableWindow(FALSE);
+			pMain->GetDlgItem(IDC_EDIT9)->EnableWindow(FALSE);
+
+			//준비 활성화
+			pMain->GetDlgItem(IDC_BUTTON4)->EnableWindow(TRUE);
+			
+			//결과 출력
+			CString msg, temp;
+			if (winner == m_ID) {
+				temp.Format(_T("승리하셨습니다! "));
+			}
+			else {
+				temp.Format(_T("패배하셨습니다! "));
+			}
+			msg.Format(_T(" %s \n 승자: %s \n 내 점수: %s \n 상대 점수: %s"), temp, winner, m_MyScore, m_OtherScore);
+
+			AfxMessageBox(msg);
+			pMain->GetDlgItem(IDOK)->EnableWindow(FALSE);
+			pMain->UpdateData(FALSE);
+
 		}
 
 		else {	//게임 시작
 
-
 			//창 활성화
 			pMain->GetDlgItem(IDC_EDIT7)->EnableWindow(TRUE);
-			pMain->GetDlgItem(IDC_EDIT8)->EnableWindow(TRUE);
+			
 			pMain->GetDlgItem(IDC_EDIT9)->EnableWindow(TRUE);
-			pMain->GetDlgItem(IDOK)->EnableWindow(TRUE);
+			
 
 			//준비 비활성화
 			pMain->SetDlgItemText(IDC_BUTTON4, _T("준비"));

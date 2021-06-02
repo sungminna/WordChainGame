@@ -46,4 +46,5 @@ public:
 	void Ready(int isready, CString username, CString msg);
 	map<CString, int> m_ready;
 	map<CString, int> m_mapScore;
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };

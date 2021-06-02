@@ -67,6 +67,7 @@ BEGIN_MESSAGE_MAP(CServerDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -275,7 +276,7 @@ void CServerDlg::Ready(int isready, CString username, CString msg)
 		//모두 준비 및 2명 로그인-> 게임 시작
 
 		for (auto it = m_ready.begin(); it != m_ready.end(); it++) {
-			it->second = 0;
+			it->second = 0;	//준비 해제상태로 map 변경
 		}
 		
 
@@ -288,8 +289,8 @@ void CServerDlg::Ready(int isready, CString username, CString msg)
 
 		CString turn, myscore, otherscore, time, name1, name2;
 		CString temp;
-		turn = m_usermap.begin()->second;
-		Sleep(1000);
+		turn = m_usermap.begin()->second;	//먼저 로그인한 사람이 시작
+		Sleep(500);
 
 		//시작 하기 위한 턴 주기
 		time.Format(_T("5000"));	//시작시 주는 시간 ms
@@ -298,12 +299,131 @@ void CServerDlg::Ready(int isready, CString username, CString msg)
 			temp.Format(_T("%s %d "), it->first, it->second);
 			query.Append(temp);
 		}
+		temp.Format(_T("0 "));	//타임아웃에 의한 턴 변경(주기)아니다
+		query.Append(temp);
 		temp.Format(_T("\r\n"));
 		query.Append(temp);
 		
 		m_pListenSocket->Broadcast(query);
 
 		m_ctrlEdit.ReplaceSel(query);
+
+		query.Format(_T("게임 시작\r\n"));
+		m_ctrlEdit.ReplaceSel(query);
+
+		//server timer start
+		SetTimer(1, 20000, NULL);
 	}
 	
+}
+
+
+void CServerDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	if (nIDEvent == 1) {
+		//게임 종료
+		CString query, temp;
+		int h_score = -1;
+		CString winner;
+		query.Format(_T("7 "));
+		for (auto it = m_mapScore.begin(); it != m_mapScore.end(); it++) {
+			temp.Format(_T("%s %d "), it->first, it->second);
+			query.Append(temp);
+			if (h_score < it->second) {	//승자 판결
+				h_score = it->second;
+				winner = it->first;
+			}
+			else if (h_score == it->second) {	//비김, 나중에 시작한 사람이 이긴다, 2번째 iteration이므로 2번째가 winner
+				winner = it->first;
+			}
+		}
+		temp.Format(_T("%s "), winner);
+		query.Append(temp);
+		
+		temp.Format(_T("\r\n"));
+		query.Append(temp);
+
+		m_pListenSocket->Broadcast(query);
+		m_ctrlEdit.ReplaceSel(query);
+
+		//DB 갱신
+		CString  str;
+		for (auto it = m_mapScore.begin(); it != m_mapScore.end(); it++) {
+			//값 가져오기
+			CString prev_score;
+			int iprev_score;
+			query.Format(_T("select point from member where id = '%s'"), it->first);
+			int status = mysql_query(&m_mysql, query);
+			MYSQL_RES *result = mysql_store_result(&m_mysql);
+
+			if (result) {
+				int nFieldCount = mysql_num_fields(result);
+				MYSQL_FIELD *fields = mysql_fetch_field(result);
+				MYSQL_ROW row;
+				while ((row = mysql_fetch_row(result))) {
+					prev_score = row[0];
+					iprev_score = _ttoi(prev_score);
+					break;
+
+				}
+			}
+			if (iprev_score < it->second & it->first == winner) {	//최고점수 갱신시, 승자일 시
+				query.Format(_T("update member set point = %d where id = '%s'"), it->second, it->first);
+				int status = mysql_query(&m_mysql, query);
+			}
+
+		}
+		str.Format(_T("DB 업데이트\r\n"));
+		m_ctrlEdit.ReplaceSel(str);
+		//리더보드 가져오고 메시지 보내기
+
+		query.Format(_T("select * from member order by point desc"));
+		int status = mysql_query(&m_mysql, query);
+		MYSQL_RES *result = mysql_store_result(&m_mysql);
+		if (result) {
+			str.Format(_T("4 "));
+			CString temp;
+			CString name, point;
+			int nFieldCount = mysql_num_fields(result);
+			MYSQL_FIELD *fields = mysql_fetch_field(result);
+			MYSQL_ROW row;
+
+			int i = 0;
+			while ((row = mysql_fetch_row(result))) {
+				i++;
+				name = row[1];
+				point = row[3];
+				temp = str;
+				str.Format(_T("%s%s %s "), temp, name, point);
+				if (i == 5) break;	//5명까지 가져오기
+			}
+			m_ctrlEdit.ReplaceSel(str);
+
+			temp = str;
+			str.Format(_T("%s%s"), temp, _T("\r\n"));
+
+			m_pListenSocket->Broadcast(str);	//db 메시지 보내기
+
+		}
+		//map에 저장된 점수 0으로 초기화
+		for (auto it = m_mapScore.begin(); it != m_mapScore.end(); it++) {
+			m_mapScore.at(it->first) = 0;
+			query.Append(temp);
+		}
+
+		//게임 방금 시작했는지 여부 초기화, 이전 단어 초기화
+		CChildSocket* pChild= (CChildSocket*)AfxGetMainWnd();
+		pChild->m_isfirst = 1;
+		pChild->m_prevword.Format(_T(""));
+
+		str.Format(_T("게임 종료\r\n"));
+		m_ctrlEdit.ReplaceSel(str);
+
+		// 타이머 제거
+		KillTimer(1);
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
 }
