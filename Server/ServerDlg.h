@@ -47,4 +47,5 @@ public:
 	map<CString, int> m_ready;
 	map<CString, int> m_mapScore;
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	int m_numlogged;
 };

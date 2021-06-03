@@ -149,17 +149,40 @@ void CClientSocket::OnReceive(int nErrorCode)
 		else if (szBuff[0] == '5') {	//내턴 or 상대턴
 			CString turn, time;
 			CString name1, name2;
-			CString timeout;
+			CString timeout, start;
+			CString total_time;
+			int itotal_time;
+			int istart;
 			int itimeout;
 			AfxExtractSubString(turn, szBuff, 1, ' ');
 			AfxExtractSubString(time, szBuff, 2, ' ');
 			AfxExtractSubString(name1, szBuff, 3, ' ');
 			AfxExtractSubString(name2, szBuff, 5, ' ');
 			AfxExtractSubString(timeout, szBuff, 7, ' ');
-			itimeout = _ttoi(timeout);
+			AfxExtractSubString(start, szBuff, 8, ' ');
 
+			istart = _ttoi(start);
 			m_itime = _ttoi(time);
-			pMain->m_cnt = m_itime / 1000;
+			itimeout = _ttoi(timeout);
+			
+			if (istart == 1) {	//게임 시작 일때
+				itimeout = _ttoi(timeout);
+				AfxExtractSubString(total_time, szBuff, 9, ' ');
+				itotal_time = _ttoi(total_time);
+				pMain->m_totaltimecount = itotal_time / 1000;
+				pMain->SetTimer(3, 1000, NULL);	//1초바다 실행
+			}
+
+
+			
+			//total timer 과 개인 타이머 시간 비교 후 작은거 택하기
+			if (m_itime/1000 > pMain->m_totaltimecount) {
+				pMain->m_cnt = pMain->m_totaltimecount / 1000;
+			}
+			else {
+				pMain->m_cnt = m_itime / 1000;
+			}
+			
 
 			if (name1 == m_ID) {
 				AfxExtractSubString(m_MyScore, szBuff, 4, ' ');
@@ -224,6 +247,8 @@ void CClientSocket::OnReceive(int nErrorCode)
 				else {	//틀린 단어
 					pMain->GetDlgItem(IDC_EDIT8)->EnableWindow(TRUE);
 					pMain->SetDlgItemText(IDC_EDIT8, _T(""));
+					msg.Format(_T("나: 틀린단어 입력!"));
+					pMain->m_ctrlArchive.ReplaceSel(msg);
 					pMain->GetDlgItem(IDOK)->EnableWindow(TRUE);
 				}
 			}
@@ -236,7 +261,8 @@ void CClientSocket::OnReceive(int nErrorCode)
 
 				}
 				else {	//틀린 단어
-					
+					msg.Format(_T("상대: 틀린단어 입력!"));
+					pMain->m_ctrlArchive.ReplaceSel(msg);
 				}
 			}
 			pMain->UpdateData(FALSE);

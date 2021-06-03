@@ -38,6 +38,7 @@ void CChildSocket::OnClose(int nErrorCode)
 	pMain->m_usermap.erase(uPort);
 	pMain->m_ready.erase(name);
 	pMain->m_mapScore.erase(name);
+	pMain->m_numlogged--;	//로그인한 사람수 -1
 
 	this->ShutDown();
 	this-> Close();
@@ -131,7 +132,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 				temp.Format(_T("%s %d "), it->first, it->second);
 				query.Append(temp);
 			}
-			temp.Format(_T("1 "));	//타임아웃에 의한 턴 변경
+			temp.Format(_T("1 0 0 "));	//타임아웃에 의한 턴 변경, 게임 시작 아니다, 총게임 시간 포함 x
 			query.Append(temp);
 			temp.Format(_T("\r\n"));
 			query.Append(temp);
@@ -149,7 +150,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 			int islink = 1;
 			int wrong_char = 0;	//잘못된 글자가 있을 시 1
 			int success;
-
+			
 			AfxExtractSubString(word, szBuffer, 1, ' ');
 
 			//잘못된 글자 있는지 확인 추가 필요
@@ -157,11 +158,14 @@ void CChildSocket::OnReceive(int nErrorCode)
 			length = word.GetLength();
 
 			//단어 확인
+			
 
+			//한글 2byte 영어 1byte
 
 			//링크 확인
-			prev_R = m_prevword.Right(1);
-			now_L = word.Left(1);
+			prev_R = m_prevword.Right(2);
+			now_L = word.Left(2);
+
 			if (prev_R == now_L || m_isfirst == 1) {
 				islink = 1;
 			}
@@ -179,9 +183,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 				success = 0;
 			}
 
-			//rest 확인추가
-
-
+			
 
 
 			//성공시 1 실패시 0
@@ -216,7 +218,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 					temp.Format(_T("%s %d "), it->first, it->second);
 					query.Append(temp);
 				}
-				temp.Format(_T("0 "));	//타임아웃에 의한 턴 변경(주기)아니다
+				temp.Format(_T("0 0 "));	//타임아웃에 의한 턴 변경(주기)아니다, 게임시작 아니다, 총게임시간 포함 x
 				query.Append(temp);
 				temp.Format(_T("\r\n"));
 				query.Append(temp);

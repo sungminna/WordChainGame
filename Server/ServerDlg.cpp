@@ -55,6 +55,7 @@ CServerDlg::CServerDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_SERVER_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_numlogged = 0;
 }
 
 void CServerDlg::DoDataExchange(CDataExchange* pDX)
@@ -231,6 +232,10 @@ void CServerDlg::Login(CString id, CString password, UINT port)
 	int status = mysql_query(&m_mysql, query);
 	MYSQL_RES *result = mysql_store_result(&m_mysql);
 	int nRowCount = mysql_num_rows(result);
+
+	if (m_numlogged >= 2) {
+		nRowCount = 0;	//2명 이상 로그인 하려고 할 때 실패로 만들기
+	}
 	if (nRowCount > 0) {
 		MYSQL_ROW row = mysql_fetch_row(result);
 		int UserNo = atoi(row[0]);
@@ -242,7 +247,7 @@ void CServerDlg::Login(CString id, CString password, UINT port)
 		m_usermap.insert(pair<UINT, CString>(port, id));
 		m_ready.insert(pair<CString, int>(id, 0));
 		m_mapScore.insert(pair<CString, int>(id, 0));
-
+		m_numlogged++;	//로그인 한 사람 수 +1
 
 		m_pListenSocket->Broadcast(str);
 	}
@@ -299,7 +304,7 @@ void CServerDlg::Ready(int isready, CString username, CString msg)
 			temp.Format(_T("%s %d "), it->first, it->second);
 			query.Append(temp);
 		}
-		temp.Format(_T("0 "));	//타임아웃에 의한 턴 변경(주기)아니다
+		temp.Format(_T("0 1 100000 "));	//타임아웃에 의한 턴 변경(주기)아니다, 게임 시작일때 1, 총 게임 시간
 		query.Append(temp);
 		temp.Format(_T("\r\n"));
 		query.Append(temp);
@@ -312,7 +317,7 @@ void CServerDlg::Ready(int isready, CString username, CString msg)
 		m_ctrlEdit.ReplaceSel(query);
 
 		//server timer start
-		SetTimer(1, 20000, NULL);
+		SetTimer(1, 100000, NULL);	//총 게임시간 위에 아래 둘다 바꾸기
 	}
 	
 }

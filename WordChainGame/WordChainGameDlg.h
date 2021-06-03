@@ -55,4 +55,6 @@ public:
 	CEdit m_MyWord;
 	CEdit m_OtherWord;
 	CEdit m_ctrlArchive;
+//	CEdit m_ctrlTotalTime;
+	int m_totaltimecount;
 };

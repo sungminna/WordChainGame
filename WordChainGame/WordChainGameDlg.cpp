@@ -58,6 +58,7 @@ CWordChainGameDlg::CWordChainGameDlg(CWnd* pParent /*=NULL*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_cnt = 0;
+	m_totaltimecount = 0;
 }
 
 void CWordChainGameDlg::DoDataExchange(CDataExchange* pDX)
@@ -72,6 +73,7 @@ void CWordChainGameDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT8, m_MyWord);
 	DDX_Control(pDX, IDC_EDIT9, m_OtherWord);
 	DDX_Control(pDX, IDC_EDIT7, m_ctrlArchive);
+
 }
 
 BEGIN_MESSAGE_MAP(CWordChainGameDlg, CDialogEx)
@@ -298,7 +300,7 @@ void CWordChainGameDlg::OnTimer(UINT_PTR nIDEvent)
 		}
 
 	}
-	else {	//상대턴
+	else if(nIDEvent == 2) {	//상대턴
 
 		CString s_time;
 		s_time.Format(_T("%d"), m_cnt);
@@ -313,6 +315,16 @@ void CWordChainGameDlg::OnTimer(UINT_PTR nIDEvent)
 		}
 		else {	//time left
 
+		}
+	}
+	else {	//전체시간 타이머
+		msg.Format(_T("남은시간: %d초"), m_totaltimecount);
+		SetDlgItemText(IDC_STATIC23, msg);
+		m_totaltimecount--;
+		this->UpdateData(FALSE);
+		if (m_totaltimecount < 0) {
+
+			KillTimer(3);
 		}
 	}
 
