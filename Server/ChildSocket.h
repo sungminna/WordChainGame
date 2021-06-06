@@ -16,6 +16,7 @@ public:
 //	void Login(CString id, CString password);
 	CString m_prevword;
 	int m_isfirst;
+	int m_istrue;
 };
 
 
