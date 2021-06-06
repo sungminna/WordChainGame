@@ -48,4 +48,7 @@ public:
 	map<CString, int> m_mapScore;
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	int m_numlogged;
+	CString m_prevword;
+//	CString m_isfirst;
+	int m_isfirst;
 };

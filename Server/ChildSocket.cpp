@@ -10,8 +10,7 @@
 
 CChildSocket::CChildSocket()
 {
-	m_prevword = _T("");
-	m_isfirst = 1;
+
 }
 
 CChildSocket::~CChildSocket()
@@ -39,6 +38,11 @@ void CChildSocket::OnClose(int nErrorCode)
 	pMain->m_ready.erase(name);
 	pMain->m_mapScore.erase(name);
 	pMain->m_numlogged--;	//로그인한 사람수 -1
+
+	//타이머 종료 및 브로드캐스트
+	pMain->KillTimer(1);
+
+
 
 	this->ShutDown();
 	this-> Close();
@@ -126,7 +130,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 				}
 			}
 
-			time.Format(_T("5000"));
+			time.Format(_T("10000"));
 			query.Format(_T("5 %s %s "), turn, time);
 			for (auto it = pDlg->m_mapScore.begin(); it != pDlg->m_mapScore.end(); it++) {
 				temp.Format(_T("%s %d "), it->first, it->second);
@@ -163,10 +167,10 @@ void CChildSocket::OnReceive(int nErrorCode)
 			//한글 2byte 영어 1byte
 
 			//링크 확인
-			prev_R = m_prevword.Right(2);
-			now_L = word.Left(2);
+			prev_R = pDlg->m_prevword.Right(1);
+			now_L = word.Left(1);
 
-			if (prev_R == now_L || m_isfirst == 1) {
+			if ((prev_R == now_L) || pDlg->m_isfirst == 1) {
 				islink = 1;
 			}
 			else {
@@ -176,7 +180,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 			//rest 확인추가
 
 			
-			if (islink == 1 & length != 0 & wrong_char == 0) {
+			if ((islink == 1) & (length != 0) & (wrong_char == 0)) {
 				success = 1;
 			}
 			else {
@@ -193,8 +197,8 @@ void CChildSocket::OnReceive(int nErrorCode)
 			pDlg->m_ctrlEdit.ReplaceSel(query);
 			
 			if (success == 1) {	//성공
-				m_isfirst = 0;
-				m_prevword = word;	//prev에 word 저장
+				pDlg->m_isfirst = 0;
+				pDlg->m_prevword = word;	//prev에 word 저장
 				//턴 넘김
 				CString username;
 				CString time, turn, temp;
@@ -212,7 +216,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 					}
 				}
 
-				time.Format(_T("5000"));	//시간 정하기
+				time.Format(_T("10000"));	//시간 정하기
 				query.Format(_T("5 %s %s "), turn, time);
 				for (auto it = pDlg->m_mapScore.begin(); it != pDlg->m_mapScore.end(); it++) {
 					temp.Format(_T("%s %d "), it->first, it->second);

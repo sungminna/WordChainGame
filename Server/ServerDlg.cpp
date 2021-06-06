@@ -56,6 +56,9 @@ CServerDlg::CServerDlg(CWnd* pParent /*=NULL*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_numlogged = 0;
+	m_prevword = _T("");
+	//  m_isfirst = _T("");
+	m_isfirst = 1;
 }
 
 void CServerDlg::DoDataExchange(CDataExchange* pDX)
@@ -298,13 +301,13 @@ void CServerDlg::Ready(int isready, CString username, CString msg)
 		Sleep(500);
 
 		//시작 하기 위한 턴 주기
-		time.Format(_T("5000"));	//시작시 주는 시간 ms
+		time.Format(_T("10000"));	//시작시 주는 시간 ms
 		query.Format(_T("5 %s %s "), turn, time);
 		for (auto it = m_mapScore.begin(); it != m_mapScore.end(); it++) {
 			temp.Format(_T("%s %d "), it->first, it->second);
 			query.Append(temp);
 		}
-		temp.Format(_T("0 1 100000 "));	//타임아웃에 의한 턴 변경(주기)아니다, 게임 시작일때 1, 총 게임 시간
+		temp.Format(_T("0 1 40000 "));	//타임아웃에 의한 턴 변경(주기)아니다, 게임 시작일때 1, 총 게임 시간
 		query.Append(temp);
 		temp.Format(_T("\r\n"));
 		query.Append(temp);
@@ -317,7 +320,7 @@ void CServerDlg::Ready(int isready, CString username, CString msg)
 		m_ctrlEdit.ReplaceSel(query);
 
 		//server timer start
-		SetTimer(1, 100000, NULL);	//총 게임시간 위에 아래 둘다 바꾸기
+		SetTimer(1, 40000, NULL);	//총 게임시간 위에 아래 둘다 바꾸기
 	}
 	
 }
@@ -328,6 +331,7 @@ void CServerDlg::OnTimer(UINT_PTR nIDEvent)
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 
 	if (nIDEvent == 1) {
+
 		//게임 종료
 		CString query, temp;
 		int h_score = -1;
@@ -420,8 +424,8 @@ void CServerDlg::OnTimer(UINT_PTR nIDEvent)
 
 		//게임 방금 시작했는지 여부 초기화, 이전 단어 초기화
 		CChildSocket* pChild= (CChildSocket*)AfxGetMainWnd();
-		pChild->m_isfirst = 1;
-		pChild->m_prevword.Format(_T(""));
+		m_isfirst = 1;
+		m_prevword.Format(_T(""));
 
 		str.Format(_T("게임 종료\r\n"));
 		m_ctrlEdit.ReplaceSel(str);
