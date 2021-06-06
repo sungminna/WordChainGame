@@ -5,20 +5,6 @@
 #include "Server.h"
 #include "ChildSocket.h"
 #include "ServerDlg.h"
-#include <iostream>
-#include <cpprest/http_client.h>
-#include <cpprest/filestream.h>
-#include <cpprest/uri.h>
-#include <cpprest/http_headers.h>
-#include <cpprest/json.h>
-#include <string.h>
-#include "tinyxml2.h"
-
-using namespace utility;
-using namespace web;
-using namespace web::http;
-using namespace web::http::client;
-using namespace concurrency::streams;
 
 // CChildSocket
 
@@ -26,41 +12,16 @@ CChildSocket::CChildSocket()
 {
 	m_prevword = _T("");
 	m_isfirst = 1;
-	m_istrue = 0;
-	m_istrue = 0;
 }
 
 CChildSocket::~CChildSocket()
 {
 }
 
-auto GET_request(const wchar_t* query_word) {
-	std::wcout << uri_builder(U("search.do")).append_query(U("q"), query_word).append_query(U("key"), "04765A233874C1C149B09678B3343868").to_string() << std::endl;
-	const char* word_true;
-	int m_isok = 0;
-	auto requestJson = http_client(U("https://stdict.korean.go.kr/api/"))
-		.request(methods::GET, uri_builder(U("search.do")).append_query(U("q"), query_word).append_query(U("key"), "04765A233874C1C149B09678B3343868").to_string())
-		.then([&](http_response response) mutable
-			{
-				if (response.status_code() != 200)
-				{
-					throw std::runtime_error("Returned " + std::to_string(response.status_code()));
-				}
-
-				std::string data = response.extract_utf8string().get();
-				//std::cout << data << std::endl;
-				const char* xml_data = data.c_str();
-				tinyxml2::XMLDocument doc;
-				doc.Parse(xml_data);
-				tinyxml2::XMLElement* titleElement = doc.FirstChildElement("channel")->FirstChildElement("total");
-				word_true = titleElement->GetText();
-				std::cout << word_true << std::endl;
-				m_isok = atoi(word_true);
-				return m_isok;
-			}).wait();
-}
 
 // CChildSocket 멤버 함수
+
+
 void CChildSocket::OnClose(int nErrorCode)
 {
 	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
@@ -191,7 +152,6 @@ void CChildSocket::OnReceive(int nErrorCode)
 			int success;
 			
 			AfxExtractSubString(word, szBuffer, 1, ' ');
-
 
 			//잘못된 글자 있는지 확인 추가 필요
 			wrong_char = 0;
