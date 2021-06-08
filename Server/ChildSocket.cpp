@@ -167,8 +167,8 @@ void CChildSocket::OnReceive(int nErrorCode)
 			//한글 2byte 영어 1byte
 
 			//링크 확인
-			prev_R = pDlg->m_prevword.Right(1);
-			now_L = word.Left(1);
+			prev_R = pDlg->m_prevword.Right(2);
+			now_L = word.Left(2);
 
 			if ((prev_R == now_L) || pDlg->m_isfirst == 1) {
 				islink = 1;
