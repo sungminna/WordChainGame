@@ -177,7 +177,7 @@ void CClientSocket::OnReceive(int nErrorCode)
 			
 			//total timer 과 개인 타이머 시간 비교 후 작은거 택하기
 			if (m_itime/1000 > pMain->m_totaltimecount) {
-				pMain->m_cnt = pMain->m_totaltimecount / 1000;
+				pMain->m_cnt = pMain->m_totaltimecount;
 			}
 			else {
 				pMain->m_cnt = m_itime / 1000;
@@ -247,7 +247,7 @@ void CClientSocket::OnReceive(int nErrorCode)
 				else {	//틀린 단어
 					pMain->GetDlgItem(IDC_EDIT8)->EnableWindow(TRUE);
 					pMain->SetDlgItemText(IDC_EDIT8, _T(""));
-					msg.Format(_T("나: 틀린단어 입력!"));
+					msg.Format(_T("나: 틀린단어 입력! \r\n"));
 					pMain->m_ctrlArchive.ReplaceSel(msg);
 					pMain->GetDlgItem(IDOK)->EnableWindow(TRUE);
 				}
@@ -261,7 +261,7 @@ void CClientSocket::OnReceive(int nErrorCode)
 
 				}
 				else {	//틀린 단어
-					msg.Format(_T("상대: 틀린단어 입력!"));
+					msg.Format(_T("상대: 틀린단어 입력! \r\n"));
 					pMain->m_ctrlArchive.ReplaceSel(msg);
 				}
 			}

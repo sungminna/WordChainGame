@@ -5,62 +5,22 @@
 #include "Server.h"
 #include "ChildSocket.h"
 #include "ServerDlg.h"
-#include <iostream>
-#include <cpprest/http_client.h>
-#include <cpprest/filestream.h>
-#include <cpprest/uri.h>
-#include <cpprest/http_headers.h>
-#include <cpprest/json.h>
-#include <string.h>
-#include "tinyxml2.h"
-
-using namespace utility;
-using namespace web;
-using namespace web::http;
-using namespace web::http::client;
-using namespace concurrency::streams;
 
 // CChildSocket
 
 CChildSocket::CChildSocket()
 {
-	m_prevword = _T("");
-	m_isfirst = 1;
-	m_istrue = 0;
-	m_istrue = 0;
+
 }
 
 CChildSocket::~CChildSocket()
 {
 }
 
-auto GET_request(const wchar_t* query_word) {
-	std::wcout << uri_builder(U("search.do")).append_query(U("q"), query_word).append_query(U("key"), "04765A233874C1C149B09678B3343868").to_string() << std::endl;
-	const char* word_true;
-	int m_isok = 0;
-	auto requestJson = http_client(U("https://stdict.korean.go.kr/api/"))
-		.request(methods::GET, uri_builder(U("search.do")).append_query(U("q"), query_word).append_query(U("key"), "04765A233874C1C149B09678B3343868").to_string())
-		.then([&](http_response response) mutable
-			{
-				if (response.status_code() != 200)
-				{
-					throw std::runtime_error("Returned " + std::to_string(response.status_code()));
-				}
-
-				std::string data = response.extract_utf8string().get();
-				//std::cout << data << std::endl;
-				const char* xml_data = data.c_str();
-				tinyxml2::XMLDocument doc;
-				doc.Parse(xml_data);
-				tinyxml2::XMLElement* titleElement = doc.FirstChildElement("channel")->FirstChildElement("total");
-				word_true = titleElement->GetText();
-				std::cout << word_true << std::endl;
-				m_isok = atoi(word_true);
-				return m_isok;
-			}).wait();
-}
 
 // CChildSocket 멤버 함수
+
+
 void CChildSocket::OnClose(int nErrorCode)
 {
 	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
@@ -78,6 +38,11 @@ void CChildSocket::OnClose(int nErrorCode)
 	pMain->m_ready.erase(name);
 	pMain->m_mapScore.erase(name);
 	pMain->m_numlogged--;	//로그인한 사람수 -1
+
+	//타이머 종료 및 브로드캐스트
+	pMain->KillTimer(1);
+
+
 
 	this->ShutDown();
 	this-> Close();
@@ -165,7 +130,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 				}
 			}
 
-			time.Format(_T("5000"));
+			time.Format(_T("10000"));
 			query.Format(_T("5 %s %s "), turn, time);
 			for (auto it = pDlg->m_mapScore.begin(); it != pDlg->m_mapScore.end(); it++) {
 				temp.Format(_T("%s %d "), it->first, it->second);
@@ -192,7 +157,6 @@ void CChildSocket::OnReceive(int nErrorCode)
 			
 			AfxExtractSubString(word, szBuffer, 1, ' ');
 
-
 			//잘못된 글자 있는지 확인 추가 필요
 			wrong_char = 0;
 			length = word.GetLength();
@@ -203,10 +167,10 @@ void CChildSocket::OnReceive(int nErrorCode)
 			//한글 2byte 영어 1byte
 
 			//링크 확인
-			prev_R = m_prevword.Right(2);
+			prev_R = pDlg->m_prevword.Right(2);
 			now_L = word.Left(2);
 
-			if (prev_R == now_L || m_isfirst == 1) {
+			if ((prev_R == now_L) || pDlg->m_isfirst == 1) {
 				islink = 1;
 			}
 			else {
@@ -216,7 +180,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 			//rest 확인추가
 
 			
-			if (islink == 1 & length != 0 & wrong_char == 0) {
+			if ((islink == 1) & (length != 0) & (wrong_char == 0)) {
 				success = 1;
 			}
 			else {
@@ -233,8 +197,8 @@ void CChildSocket::OnReceive(int nErrorCode)
 			pDlg->m_ctrlEdit.ReplaceSel(query);
 			
 			if (success == 1) {	//성공
-				m_isfirst = 0;
-				m_prevword = word;	//prev에 word 저장
+				pDlg->m_isfirst = 0;
+				pDlg->m_prevword = word;	//prev에 word 저장
 				//턴 넘김
 				CString username;
 				CString time, turn, temp;
@@ -252,7 +216,7 @@ void CChildSocket::OnReceive(int nErrorCode)
 					}
 				}
 
-				time.Format(_T("5000"));	//시간 정하기
+				time.Format(_T("10000"));	//시간 정하기
 				query.Format(_T("5 %s %s "), turn, time);
 				for (auto it = pDlg->m_mapScore.begin(); it != pDlg->m_mapScore.end(); it++) {
 					temp.Format(_T("%s %d "), it->first, it->second);
