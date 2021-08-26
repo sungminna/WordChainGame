@@ -28,10 +28,10 @@ Target windows version 8.1
 Visual Studio 2015 MFC
 MYSQL 5.7.34-x64
 
-## Program Logic
+## Program Logic(in Korean)
 ![image](https://user-images.githubusercontent.com/26839173/130964482-622e5d13-5edd-4db9-89c4-b3f946531a83.png)
 
-## Features
+## Features(in Korean)
 ![image](https://user-images.githubusercontent.com/26839173/130964550-9a22adeb-d7af-4ed3-b102-3a1672d993df.png)
 
 
